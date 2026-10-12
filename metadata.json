@@ -1,0 +1,6 @@
+{
+  "name": "Holidays — Hub BitStone",
+  "description": "Internal time-off management, team schedule, and approval workflow for Hub BitStone.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
