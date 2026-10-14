@@ -161,12 +161,10 @@ export const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
       startDate: startDateStr,
       endDate: finalEnd,
       workingDays: businessDays,
-      status: isSuperAdmin ? 'approved' : 'pending',
+      status: 'pending',
       daysLeft: daysRemainingLive,
       responsibleTl: effectiveEmployee.leadName || 'Dan Bilauca',
       description: description || undefined,
-      approvedBy: isSuperAdmin ? currentUser.name : undefined,
-      approvedAt: isSuperAdmin ? new Date().toISOString() : undefined,
     });
 
     onClose();
@@ -473,7 +471,7 @@ export const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
                 style={{ borderRadius: '8px' }}
                 className="px-4 py-2 text-xs font-bold text-white bg-[#E31B23] hover:bg-[#C9161E] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-xs"
               >
-                Add and approve leave
+                Add leave
               </button>
             ) : (
               <button

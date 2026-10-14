@@ -170,11 +170,11 @@ export const RequestsPage: React.FC<RequestsPageProps> = ({
             />
           </div>
 
-          {/* Show Calendar button */}
+          {/* Show Calendar button (hidden for now) */}
           <button
             onClick={onOpenCalendar}
             style={{ borderRadius: '8px' }}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#111827] bg-white border border-[#E5E7EB] hover:bg-gray-50 transition-colors shadow-2xs whitespace-nowrap"
+            className="hidden items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#111827] bg-white border border-[#E5E7EB] hover:bg-gray-50 transition-colors shadow-2xs whitespace-nowrap"
           >
             <CalendarIcon className="w-3.5 h-3.5 text-[#111827]" />
             <span>Show calendar</span>

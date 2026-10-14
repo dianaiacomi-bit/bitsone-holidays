@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Employee, LeaveRequest, BalanceAdjustment } from '../types/holiday';
 import { formatDisplayDate } from '../utils/dateUtils';
-import { ArrowLeft, MoreVertical, Download } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Download, Info } from 'lucide-react';
 import { CustomSelect } from './CustomSelect';
 
 interface EmployeeDetailsPageProps {
@@ -63,30 +63,25 @@ export const EmployeeDetailsPage: React.FC<EmployeeDetailsPageProps> = ({
     }, 0);
   }, [employeeAdjustmentsForYear]);
 
-  // Format Total Leave days: e.g. 25 (+2) or 25
-  const totalLeaveDisplay = useMemo(() => {
-    if (totalAdjustedDays > 0) {
-      return (
-        <span className="flex items-baseline gap-1">
-          <span className="text-sm font-medium text-[#111827]">{baseAllocation}</span>
-          <span className="text-xs font-normal text-[#6B7280]">
-            (+{totalAdjustedDays})
-          </span>
-        </span>
-      );
-    }
-    if (totalAdjustedDays < 0) {
-      return (
-        <span className="flex items-baseline gap-1">
-          <span className="text-sm font-medium text-[#111827]">{baseAllocation}</span>
-          <span className="text-xs font-normal text-[#6B7280]">
-            ({totalAdjustedDays})
-          </span>
-        </span>
-      );
-    }
-    return <span className="text-sm font-medium text-[#111827]">{baseAllocation}</span>;
-  }, [baseAllocation, totalAdjustedDays]);
+  const [showAdjustmentsTooltip, setShowAdjustmentsTooltip] = useState<boolean>(false);
+
+  // Close tooltip on outside click
+  useEffect(() => {
+    if (!showAdjustmentsTooltip) return;
+    const handleClickOutside = () => setShowAdjustmentsTooltip(false);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showAdjustmentsTooltip]);
+
+  // Breakdown for tooltip: e.g. "Base allocation: 25 days + Adjustments: +1 Blood donation, +1 Birthday = Total: 27 days"
+  const adjustmentsBreakdownText = useMemo(() => {
+    if (employeeAdjustmentsForYear.length === 0) return '';
+    const items = employeeAdjustmentsForYear.map((adj) => {
+      const sign = adj.adjustmentType === 'add' ? '+' : '-';
+      return `${sign}${adj.days} ${adj.description || 'Adjustment'}`;
+    });
+    return `Base allocation: ${baseAllocation} days + Adjustments: ${items.join(', ')} = Total: ${baseAllocation + totalAdjustedDays} days`;
+  }, [employeeAdjustmentsForYear, baseAllocation, totalAdjustedDays]);
 
   // Leave requests for this employee in the selected year
   const employeeRequestsForYear = useMemo(() => {
@@ -279,14 +274,40 @@ BitStone Holidays · hub.bitstone.eu`;
             <span className="text-[13px] font-medium text-[#6B7280] mb-2.5">
               Total leave days
             </span>
-            <div className="flex items-baseline gap-1.5 leading-none">
+            <div className="flex items-center gap-1.5 leading-none">
               <span className="text-3xl font-medium text-[#111827]">
-                {baseAllocation}
+                {totalEffectiveDays}
               </span>
-              {totalAdjustedDays !== 0 && (
-                <span className="text-base font-medium text-[#111827]">
-                  ({totalAdjustedDays > 0 ? `+${totalAdjustedDays}` : totalAdjustedDays})
-                </span>
+              {employeeAdjustmentsForYear.length > 0 && (
+                <div
+                  className="relative group inline-flex items-center"
+                  onMouseEnter={() => setShowAdjustmentsTooltip(true)}
+                  onMouseLeave={() => setShowAdjustmentsTooltip(false)}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAdjustmentsTooltip((prev) => !prev);
+                    }}
+                    aria-label="View adjustments breakdown"
+                    className="p-0.5 text-[#9CA3AF] hover:text-[#111827] focus:outline-none transition-colors"
+                  >
+                    <Info className="w-4 h-4" />
+                  </button>
+
+                  <div
+                    role="tooltip"
+                    className={`absolute bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 px-3 py-2 text-xs font-normal text-white bg-[#111827] rounded-md shadow-xl z-50 pointer-events-none transition-all duration-150 max-w-[280px] sm:max-w-none sm:whitespace-nowrap ${
+                      showAdjustmentsTooltip
+                        ? 'opacity-100 visible'
+                        : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
+                    }`}
+                  >
+                    {adjustmentsBreakdownText}
+                    <div className="absolute top-full left-3 sm:left-1/2 sm:-translate-x-1/2 -mt-px border-4 border-transparent border-t-[#111827]" />
+                  </div>
+                </div>
               )}
             </div>
           </div>
