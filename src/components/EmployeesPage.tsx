@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Team, Employee, UserRole } from '../types/holiday';
-import { Search, MoreVertical, PlusCircle, Pencil } from 'lucide-react';
+import { Search, Pencil, Plus } from 'lucide-react';
 
 interface EmployeesPageProps {
   teams: Team[];
@@ -8,6 +8,8 @@ interface EmployeesPageProps {
   userRole?: UserRole;
   teamLeadScope?: '1team' | '3teams';
   onSelectEmployee?: (employee: Employee) => void;
+  onOpenAddLeave?: () => void;
+  onOpenAdjustLeaves?: () => void;
   onOpenAddLeaveForEmployee?: (employee: Employee) => void;
   onOpenAdjustLeavesForEmployee?: (employee: Employee) => void;
 }
@@ -56,8 +58,8 @@ export const EmployeesPage: React.FC<EmployeesPageProps> = ({
   userRole = 'superadmin',
   teamLeadScope = '1team',
   onSelectEmployee,
-  onOpenAddLeaveForEmployee,
-  onOpenAdjustLeavesForEmployee,
+  onOpenAddLeave,
+  onOpenAdjustLeaves,
 }) => {
   // 'all' or specific teamId
   const [selectedTeamId, setSelectedTeamId] = useState<string>(
@@ -101,82 +103,29 @@ export const EmployeesPage: React.FC<EmployeesPageProps> = ({
     }
   };
 
-  // Team Lead view
+  // Team Lead view (Always use two-panel layout, even for single team)
   if (userRole === 'lead') {
-    // 1. Single team mode: full width table, no left menu
-    if (teamLeadScope === '1team') {
-      const dotnetMembers = employees
-        .filter((e) => isMemberOfTeam(e, 'team-dotnet') && !e.isLead && e.name !== 'Dan Bilauca')
-        .sort((a, b) => a.name.localeCompare(b.name));
+    const ledTeams = teamLeadScope === '1team' ? [TL_3_TEAMS[0]] : TL_3_TEAMS;
 
-      return (
-        <div className="space-y-4">
-          <h1 className="text-2xl font-medium text-[#111827]">
-            My Team
-          </h1>
-
-          <div
-            className="bg-white border border-[#D1D5DB] shadow-xs overflow-hidden"
-            style={{ borderRadius: '12px' }}
-          >
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-[#D1D5DB] bg-[#F3F4F6] text-[#374151] uppercase tracking-wider font-semibold text-[11px]">
-                    <th className="px-5 py-3.5">NAME</th>
-                    <th className="px-5 py-3.5 text-right">DAYS LEFT</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#D1D5DB]">
-                  {dotnetMembers.map((member) => (
-                    <tr key={member.id} className="hover:bg-gray-50/70 transition-colors">
-                      <td className="px-5 py-3.5 font-medium text-[#111827] whitespace-nowrap">
-                        <span className="font-bold">{member.name}</span>
-                      </td>
-                      <td className="px-5 py-3.5 text-right font-semibold text-[#111827] whitespace-nowrap">
-                        <span className={member.daysRemaining < 0 ? 'text-[#E31B23]' : ''}>
-                          {member.daysRemaining} days
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // 2. 3 teams mode: vertical menu with only the 3 led teams
-    const currentTeamId = TL_3_TEAMS.some((t) => t.id === selectedTeamId)
+    const currentTeamId = ledTeams.some((t) => t.id === selectedTeamId)
       ? selectedTeamId
-      : 'team-dotnet';
+      : ledTeams[0].id;
 
     // Get members for the selected team
-    let teamMembers: Employee[] = [];
-    if (currentTeamId === 'team-dotnet') {
-      teamMembers = employees.filter(
-        (e) => isMemberOfTeam(e, 'team-dotnet') && !e.isLead && e.name !== 'Dan Bilauca'
-      );
-    } else if (currentTeamId === 'team-devops') {
-      teamMembers = employees.filter(
-        (e) => e.teamId === 'team-devops' && !e.isLead && e.name !== 'Dan Bilauca'
-      );
-    } else if (currentTeamId === 'team-qa') {
-      teamMembers = employees.filter(
-        (e) => e.teamId === 'team-qa' && !e.isLead && e.name !== 'Dan Bilauca'
-      );
-    }
+    const teamMembers = employees.filter(
+      (e) => isMemberOfTeam(e, currentTeamId) && !e.isLead && e.name !== 'Dan Bilauca'
+    );
 
     const sortedTeamMembers = [...teamMembers].sort((a, b) =>
       a.name.localeCompare(b.name)
     );
 
+    const pageTitle = teamLeadScope === '1team' ? 'My Team' : 'My Teams';
+
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-medium text-[#111827]">
-          My Teams
+          {pageTitle}
         </h1>
 
         <div
@@ -184,11 +133,16 @@ export const EmployeesPage: React.FC<EmployeesPageProps> = ({
           style={{ borderRadius: '12px' }}
         >
           <div className="grid grid-cols-1 md:grid-cols-12 min-h-[420px]">
-            {/* Left vertical menu */}
+            {/* Left team panel (always present, even for single team) */}
             <div className="md:col-span-4 border-r border-[#D1D5DB] bg-[#F9FAFB] flex flex-col">
               <div className="overflow-y-auto flex-1">
-                {TL_3_TEAMS.map((t) => {
+                {ledTeams.map((t) => {
                   const isSelected = t.id === currentTeamId;
+                  const memberCount =
+                    employees.filter(
+                      (e) => isMemberOfTeam(e, t.id) && !e.isLead && e.name !== 'Dan Bilauca'
+                    ).length || t.count;
+
                   return (
                     <button
                       key={t.id}
@@ -201,7 +155,7 @@ export const EmployeesPage: React.FC<EmployeesPageProps> = ({
                     >
                       <span className="truncate">{t.name}</span>
                       <span className={`text-[11px] ${isSelected ? 'text-[#E31B23]' : 'text-[#6B7280]'}`}>
-                        {t.count} members
+                        {memberCount} members
                       </span>
                     </button>
                   );
@@ -209,7 +163,7 @@ export const EmployeesPage: React.FC<EmployeesPageProps> = ({
               </div>
             </div>
 
-            {/* Right panel */}
+            {/* Right panel: member table */}
             <div className="md:col-span-8 flex flex-col bg-white">
               <div className="overflow-x-auto flex-1">
                 <table className="w-full text-left text-xs">
@@ -281,32 +235,60 @@ export const EmployeesPage: React.FC<EmployeesPageProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Top area: Title + Search Bar */}
+      {/* Top area: Title + Search Bar (20px next to title) + Page Action Buttons (top-right) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-2xl font-medium text-[#111827]">
-          Employees (60)
-        </h1>
+        {/* Title + Search bar next to title at 20px distance */}
+        <div className="flex flex-wrap items-center gap-5">
+          <h1 className="text-2xl font-medium text-[#111827]">
+            Employees ({employees.length})
+          </h1>
 
-        {/* Search bar: filters employees by name */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search employee by name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ borderRadius: '8px' }}
-            className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-[#D1D5DB] focus:outline-none focus:border-[#E31B23] text-[#111827] placeholder:text-[#9CA3AF] font-medium shadow-2xs"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[#9CA3AF] hover:text-[#111827]"
-            >
-              ×
-            </button>
-          )}
+          {/* Search bar: 20px distance from title */}
+          <div className="relative w-48 sm:w-64">
+            <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search employee by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ borderRadius: '8px' }}
+              className="w-full pl-9 pr-6 py-2 text-xs bg-white border border-[#D1D5DB] focus:outline-none focus:border-[#E31B23] text-[#111827] placeholder:text-[#9CA3AF] font-medium shadow-2xs"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[#9CA3AF] hover:text-[#111827]"
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Action Buttons: Super Admin only */}
+        {userRole === 'superadmin' && (
+          <div className="flex items-center gap-3">
+            {/* Adjust Leaves: outlined, pen icon, 8px */}
+            <button
+              onClick={onOpenAdjustLeaves}
+              style={{ borderRadius: '8px' }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#111827] bg-white border border-[#E5E7EB] hover:bg-gray-50 transition-colors shadow-2xs whitespace-nowrap cursor-pointer active:scale-[0.98]"
+            >
+              <Pencil className="w-3.5 h-3.5 text-[#111827]" />
+              <span>Adjust leaves</span>
+            </button>
+
+            {/* Add Leave: red fill, 8px */}
+            <button
+              onClick={onOpenAddLeave}
+              style={{ borderRadius: '8px' }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#E31B23] hover:bg-[#C9161E] transition-colors shadow-xs whitespace-nowrap cursor-pointer active:scale-[0.98]"
+            >
+              <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
+              <span>Add leave</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Two-panel layout in one card container */}
@@ -403,18 +385,13 @@ export const EmployeesPage: React.FC<EmployeesPageProps> = ({
                         />
                       </button>
                     </th>
-
-                    {/* ACTIONS: 3-dots menu */}
-                    <th className="px-4 py-3.5 text-right w-12">
-                      <span className="sr-only">ACTIONS</span>
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#D1D5DB]">
                   {displayedEmployees.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={selectedTeamId === 'all' ? 4 : 3}
+                        colSpan={selectedTeamId === 'all' ? 3 : 2}
                         className="px-5 py-12 text-center text-xs text-[#6B7280]"
                       >
                         No employees found matching your criteria.
@@ -470,57 +447,6 @@ export const EmployeesPage: React.FC<EmployeesPageProps> = ({
                             <span className={member.daysRemaining < 0 ? 'text-[#E31B23]' : ''}>
                               {member.daysRemaining} days
                             </span>
-                          </td>
-
-                          {/* 3-dots actions menu at end of row */}
-                          <td
-                            className="px-4 py-3.5 align-middle text-right whitespace-nowrap"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="inline-flex items-center justify-end relative">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenRowMenuId(openRowMenuId === member.id ? null : member.id);
-                                }}
-                                style={{ borderRadius: '8px' }}
-                                className="w-8 h-8 flex items-center justify-center text-[#6B7280] hover:text-[#111827] hover:bg-gray-100 transition-colors"
-                                title="Actions"
-                              >
-                                <MoreVertical className="w-4 h-4" />
-                              </button>
-
-                              {openRowMenuId === member.id && (
-                                <div
-                                  style={{ borderRadius: '8px' }}
-                                  className={`absolute right-0 ${
-                                    openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'
-                                  } w-36 bg-white border border-[#D1D5DB] shadow-lg py-1 z-50 text-left text-xs font-medium`}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <button
-                                    onClick={() => {
-                                      onOpenAddLeaveForEmployee?.(member);
-                                      setOpenRowMenuId(null);
-                                    }}
-                                    className="w-full text-left px-3 py-1.5 text-[#111827] hover:bg-gray-50 flex items-center gap-2"
-                                  >
-                                    <PlusCircle className="w-3.5 h-3.5 text-[#6B7280]" />
-                                    <span>Add leave</span>
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      onOpenAdjustLeavesForEmployee?.(member);
-                                      setOpenRowMenuId(null);
-                                    }}
-                                    className="w-full text-left px-3 py-1.5 text-[#111827] hover:bg-gray-50 flex items-center gap-2"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5 text-[#6B7280]" />
-                                    <span>Adjust leaves</span>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
                           </td>
                         </tr>
                       );

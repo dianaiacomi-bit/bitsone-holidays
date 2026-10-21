@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Employee, LeaveRequest, BalanceAdjustment } from '../types/holiday';
 import { formatDisplayDate } from '../utils/dateUtils';
-import { ArrowLeft, MoreVertical, Download, Info } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Download, Info, Pencil, Plus } from 'lucide-react';
 import { CustomSelect } from './CustomSelect';
 
 interface EmployeeDetailsPageProps {
@@ -11,6 +11,8 @@ interface EmployeeDetailsPageProps {
   adjustments: BalanceAdjustment[];
   onBack: () => void;
   onDownloadPdf: (req: LeaveRequest) => void;
+  onOpenAddLeave?: (employee: Employee) => void;
+  onOpenAdjustLeaves?: (employee: Employee) => void;
 }
 
 interface CombinedHistoryItem {
@@ -33,6 +35,8 @@ export const EmployeeDetailsPage: React.FC<EmployeeDetailsPageProps> = ({
   adjustments,
   onBack,
   onDownloadPdf,
+  onOpenAddLeave,
+  onOpenAdjustLeaves,
 }) => {
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -207,16 +211,19 @@ BitStone Holidays · hub.bitstone.eu`;
   return (
     <div className="space-y-6">
       {/* Top back navigation & page title */}
-      <div className="space-y-2">
+      <div className="space-y-3">
+        {/* In-page breadcrumb (text + arrow) */}
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to employees</span>
         </button>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+
+        {/* Title row: employee name on left, action buttons on right */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-medium text-[#111827]">{employee.name}</h1>
             {employee.isLead && (
               <span
@@ -226,12 +233,39 @@ BitStone Holidays · hub.bitstone.eu`;
                 Team Lead
               </span>
             )}
+            <span className="text-xs text-[#6B7280] font-medium ml-1">
+              {employee.teams && employee.teams.length > 0
+                ? employee.teams.join(', ')
+                : employee.teamName}
+            </span>
           </div>
-          <span className="text-xs text-[#6B7280] font-medium">
-            {employee.teams && employee.teams.length > 0
-              ? employee.teams.join(', ')
-              : employee.teamName}
-          </span>
+
+          {/* Action buttons (Super Admin): pre-select this employee */}
+          <div className="flex items-center gap-3">
+            {/* Adjust Leaves: outlined, pen icon, 8px */}
+            {onOpenAdjustLeaves && (
+              <button
+                onClick={() => onOpenAdjustLeaves(employee)}
+                style={{ borderRadius: '8px' }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#111827] bg-white border border-[#E5E7EB] hover:bg-gray-50 transition-colors shadow-2xs whitespace-nowrap cursor-pointer active:scale-[0.98]"
+              >
+                <Pencil className="w-3.5 h-3.5 text-[#111827]" />
+                <span>Adjust leaves</span>
+              </button>
+            )}
+
+            {/* Add Leave: red fill, 8px */}
+            {onOpenAddLeave && (
+              <button
+                onClick={() => onOpenAddLeave(employee)}
+                style={{ borderRadius: '8px' }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#E31B23] hover:bg-[#C9161E] transition-colors shadow-xs whitespace-nowrap cursor-pointer active:scale-[0.98]"
+              >
+                <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
+                <span>Add leave</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

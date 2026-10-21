@@ -248,21 +248,13 @@ BitStone Holidays · hub.bitstone.eu`;
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] text-[#111827] flex flex-col font-sans">
-      {/* HEADER (appears on all pages, text nav items with red bottom underline bar, avatar with dropdown) */}
+      {/* HEADER (navigation only, no action buttons) */}
       <AppHeader
         currentPage={currentPage}
         onSelectPage={setCurrentPage}
         currentRole={currentRole}
         onChangeRole={handleChangeRole}
         currentUser={currentUser}
-        onOpenAddLeave={() => {
-          setModalTargetEmployeeId(null);
-          setIsAddLeaveOpen(true);
-        }}
-        onOpenAdjustLeaves={() => {
-          setModalTargetEmployeeId(null);
-          setIsAdjustLeavesOpen(true);
-        }}
         onBackToHub={handleBackToHub}
         teamLeadScope={teamLeadScope}
         onTeamLeadScopeChange={setTeamLeadScope}
@@ -279,6 +271,10 @@ BitStone Holidays · hub.bitstone.eu`;
             adjustments={adjustments}
             onDownloadPdf={handleDownloadPdf}
             onCancelRequest={handleCancelRequest}
+            onOpenAddLeave={() => {
+              setModalTargetEmployeeId(null);
+              setIsAddLeaveOpen(true);
+            }}
           />
         ) : (
           /* Team Lead & Super Admin workspace */
@@ -291,6 +287,10 @@ BitStone Holidays · hub.bitstone.eu`;
                 adjustments={adjustments}
                 onDownloadPdf={handleDownloadPdf}
                 onCancelRequest={handleCancelRequest}
+                onOpenAddLeave={() => {
+                  setModalTargetEmployeeId(null);
+                  setIsAddLeaveOpen(true);
+                }}
               />
             )}
 
@@ -320,6 +320,14 @@ BitStone Holidays · hub.bitstone.eu`;
                   adjustments={adjustments}
                   onBack={() => setSelectedEmployeeForDetails(null)}
                   onDownloadPdf={handleDownloadPdf}
+                  onOpenAddLeave={(emp) => {
+                    setModalTargetEmployeeId(emp.id);
+                    setIsAddLeaveOpen(true);
+                  }}
+                  onOpenAdjustLeaves={(emp) => {
+                    setModalTargetEmployeeId(emp.id);
+                    setIsAdjustLeavesOpen(true);
+                  }}
                 />
               ) : (
                 <EmployeesPage
@@ -332,12 +340,12 @@ BitStone Holidays · hub.bitstone.eu`;
                       setSelectedEmployeeForDetails(emp);
                     }
                   }}
-                  onOpenAddLeaveForEmployee={(emp) => {
-                    setModalTargetEmployeeId(emp.id);
+                  onOpenAddLeave={() => {
+                    setModalTargetEmployeeId(null);
                     setIsAddLeaveOpen(true);
                   }}
-                  onOpenAdjustLeavesForEmployee={(emp) => {
-                    setModalTargetEmployeeId(emp.id);
+                  onOpenAdjustLeaves={() => {
+                    setModalTargetEmployeeId(null);
                     setIsAdjustLeavesOpen(true);
                   }}
                 />

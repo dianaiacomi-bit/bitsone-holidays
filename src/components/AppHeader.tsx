@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { UserRole, Employee } from '../types/holiday';
-import { ArrowLeft, LogOut, Plus, Pencil } from 'lucide-react';
+import { Home, LogOut } from 'lucide-react';
 
 interface AppHeaderProps {
   currentPage: 'myleaves' | 'requests' | 'employees' | 'reports';
@@ -8,8 +8,8 @@ interface AppHeaderProps {
   currentRole: UserRole;
   onChangeRole: (role: UserRole) => void;
   currentUser: Employee;
-  onOpenAddLeave: () => void;
-  onOpenAdjustLeaves: () => void;
+  onOpenAddLeave?: () => void;
+  onOpenAdjustLeaves?: () => void;
   onBackToHub: () => void;
   teamLeadScope?: '1team' | '3teams';
   onTeamLeadScopeChange?: (scope: '1team' | '3teams') => void;
@@ -21,8 +21,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   currentRole,
   onChangeRole,
   currentUser,
-  onOpenAddLeave,
-  onOpenAdjustLeaves,
   onBackToHub,
   teamLeadScope = '1team',
   onTeamLeadScopeChange,
@@ -135,10 +133,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="flex items-center gap-5">
           <button
             onClick={onBackToHub}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Hub</span>
+            <Home className="w-4 h-4" />
+            <span>HUB</span>
           </button>
 
           <div className="h-5 w-px bg-[#E5E7EB]" />
@@ -208,29 +206,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </nav>
         )}
 
-        {/* Right side: Action Buttons + Avatar */}
+        {/* Right side: Avatar only */}
         <div className="flex items-center gap-3">
-          {/* Adjust Leaves button (Super Admin only, outlined style, Lucide icon, 8px radius) */}
-          {currentRole === 'superadmin' && (
-            <button
-              onClick={onOpenAdjustLeaves}
-              style={{ borderRadius: '8px' }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#111827] bg-white border border-[#E5E7EB] hover:bg-gray-50 transition-colors shadow-2xs whitespace-nowrap"
-            >
-              <Pencil className="w-3.5 h-3.5 text-[#111827]" />
-              <span>Adjust leaves</span>
-            </button>
-          )}
-
-          {/* Add Leave button (Red fill, white text, Lucide Plus icon, 8px radius) */}
-          <button
-            onClick={onOpenAddLeave}
-            style={{ borderRadius: '8px' }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#E31B23] hover:bg-[#C9161E] transition-colors shadow-xs whitespace-nowrap"
-          >
-            <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
-            <span>Add leave</span>
-          </button>
 
           {/* Avatar: circular initials only. No user name text next to it. Clicking opens dropdown */}
           <div className="relative pl-1" ref={avatarRef}>

@@ -182,11 +182,8 @@ export const RequestsPage: React.FC<RequestsPageProps> = ({
         </div>
       </div>
 
-      {/* Exactly ONE Toolbar Surface: Tabs on left, Filters on right. No second stacked bar */}
-      <div
-        className="bg-white border border-[#E5E7EB] p-3 shadow-xs flex flex-wrap items-center justify-between gap-3"
-        style={{ borderRadius: '12px' }}
-      >
+      {/* Tabs on left, Filters on right directly on the page surface with a bottom border divider */}
+      <div className="border-b border-[#E5E7EB] pb-3 flex flex-wrap items-center justify-between gap-3">
         {/* Left: Filter Tabs */}
         <div className="flex items-center gap-1 text-xs font-semibold">
           <button

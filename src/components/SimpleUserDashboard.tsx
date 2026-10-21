@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LeaveRequest, Employee, UserRole, BalanceAdjustment } from '../types/holiday';
 import { formatDisplayDate } from '../utils/dateUtils';
-import { MoreVertical, Download, X, Info } from 'lucide-react';
+import { MoreVertical, Download, X, Info, Plus } from 'lucide-react';
 import { CustomSelect } from './CustomSelect';
 
 interface SimpleUserDashboardProps {
@@ -11,6 +11,7 @@ interface SimpleUserDashboardProps {
   adjustments?: BalanceAdjustment[];
   onDownloadPdf: (req: LeaveRequest) => void;
   onCancelRequest?: (id: string) => void;
+  onOpenAddLeave?: () => void;
 }
 
 interface CombinedHistoryItem {
@@ -34,6 +35,7 @@ export const SimpleUserDashboard: React.FC<SimpleUserDashboardProps> = ({
   adjustments = [],
   onDownloadPdf,
   onCancelRequest,
+  onOpenAddLeave,
 }) => {
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -214,10 +216,22 @@ BitStone Holidays · hub.bitstone.eu`;
 
   return (
     <div className="space-y-6">
-      {/* Page Title: "My Leaves" (Figtree 500 / font-medium, 2xl, dark, no icon) */}
-      <h1 className="text-2xl font-medium text-[#111827]">
-        My Leaves
-      </h1>
+      {/* Page Title: "My Leaves" on left, "Add Leave" button on right */}
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-medium text-[#111827]">
+          My Leaves
+        </h1>
+        {onOpenAddLeave && (
+          <button
+            onClick={onOpenAddLeave}
+            style={{ borderRadius: '8px' }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#E31B23] hover:bg-[#C9161E] transition-colors shadow-xs whitespace-nowrap cursor-pointer active:scale-[0.98]"
+          >
+            <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
+            <span>Add leave</span>
+          </button>
+        )}
+      </div>
 
       {/* Summary Strip (sits directly on the page, no card background, no border) */}
       <div className="space-y-4">
